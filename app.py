@@ -1,25 +1,27 @@
-from flask import Flask, render_template, request
+import streamlit as st
 import pickle
 import numpy as np
 
-app = Flask(__name__)
-
+# Load your model and scaler
 model = pickle.load(open("model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
 
-@app.route("/")
-def home():
-    return render_template("index.html")
+st.title("🏠 House Price Prediction App")
 
-@app.route("/predict", methods=["POST"])
-def predict():
+st.write("Enter the input features below:")
+
+# Example input fields — replace or add more according to your model
+feature1 = st.number_input("Feature 1", value=0.0)
+feature2 = st.number_input("Feature 2", value=0.0)
+feature3 = st.number_input("Feature 3", value=0.0)
+# Add as many as needed based on your model’s training features
+
+if st.button("Predict"):
     try:
-        features = [float(x) for x in request.form.values()]
-        scaled_features = scaler.transform([features])
-        prediction = model.predict(scaled_features)
-        return render_template("index.html", prediction_text=f"Predicted Price: ₹{prediction[0]:,.2f}")
+        features = np.array([[feature1, feature2, feature3]])  # match model input size
+        scaled = scaler.transform(features)
+        prediction = model.predict(scaled)
+        st.success(f"Predicted Price: ₹{prediction[0]:,.2f}")
     except Exception as e:
-        return render_template("index.html", prediction_text=f"Error: {str(e)}")
+        st.error(f"Error: {e}")
 
-if __name__ == "__main__":
-    app.run(debug=True)
